@@ -1,7 +1,7 @@
-import { setLoading } from "../../slices/authSlice";
 import { apiConnector } from "../apiConnector";
 import { departmentEndpoints } from "../api";
 import { toast } from "react-hot-toast";
+import { setDepartments, setLoading } from "../../slices/departmentSlice";
 
 const {
   CREATE_DEPARTMENT_API,
@@ -26,6 +26,7 @@ export function createDepartment(departmentData, token) {
         throw new Error(response.data.message);
       }
       toast.success("Department Created Successfully");
+      dispatch(fetchAllDepartments(token)); 
     } catch (error) {
       console.log("CREATE_DEPARTMENT_API_ERROR", error);
       toast.error("Unable to Create Department");
@@ -50,6 +51,7 @@ export function updateDepartment(departmentData, token) {
         throw new Error(response.data.message);
       }
       toast.success("Department Updated Successfully");
+      dispatch(fetchAllDepartments(token));
     } catch (error) {
       console.log("UPDATE_DEPARTMENT_API_ERROR", error);
       toast.error("Unable to Update Department");
@@ -74,6 +76,7 @@ export function deleteDepartment(departmentId, token) {
         throw new Error(response.data.message);
       }
       toast.success("Department Deleted Successfully");
+      dispatch(fetchAllDepartments(token)); 
     } catch (error) {
       console.log("DELETE_DEPARTMENT_API_ERROR", error);
       toast.error("Unable to Delete Department");
@@ -82,22 +85,26 @@ export function deleteDepartment(departmentId, token) {
   };
 }
 
-export const fetchAllDepartments = async (token) => {
-  setLoading(true);
-  let result = [];
-
-  try {
-    const response = await apiConnector("GET", GET_ALL_DEPARTMENTS_API, null, {
-      Authorization: `Bearer ${token}`,
-    });
-    if (!response.data.success) {
-      throw new Error(response.data.message);
+export function fetchAllDepartments(token) {
+  return async (dispatch) => {
+    dispatch(setLoading(true));
+    try {
+      const response = await apiConnector(
+        "GET",
+        GET_ALL_DEPARTMENTS_API,
+        null,
+        {
+          Authorization: `Bearer ${token}`,
+        }
+      );
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      dispatch(setDepartments(response.data.data));
+    } catch (error) {
+      console.log("FETCH_ALL_DEPARTMENTS_API_ERROR", error);
+      toast.error("Couldn't fetch departments");
     }
-    result = response.data.data;
-  } catch (error) {
-    console.log("FETCH_ALL_DEPARTMENTS_API_ERROR", error);
-    toast.error("Couldn't fetch departments");
-  }
-  setLoading(false);
-  return result;
-};
+    dispatch(setLoading(false));
+  };
+}

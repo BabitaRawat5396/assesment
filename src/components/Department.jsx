@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import DepartmentCard from "./DepartmentCard";
 import { FaPlus } from "react-icons/fa";
 import {
@@ -13,31 +13,20 @@ import DepartmentFormModal from "./FormModal";
 
 const Department = () => {
   const { token } = useSelector((state) => state.auth);
+  const { loading, departments } = useSelector((state) => state.department);
   const dispatch = useDispatch();
-  const [departments, setDepartments] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (token) {
-      fetchDepartments(token);
+      dispatch(fetchAllDepartments(token));
     }
   }, []);
-
-  const fetchDepartments = async (token) => {
-    setLoading(true);
-    const data = await fetchAllDepartments(token);
-    console.log(data);
-    setDepartments(data);
-    setLoading(false);
-  };
 
   const handleSave = async (data) => {
     dispatch(updateDepartment(data, token));
     setIsModalOpen(false);
-    // Refresh the departments list
-    await fetchDepartments(token);
   };
 
   const handleClose = () => {
@@ -48,13 +37,11 @@ const Department = () => {
   const handleDelete = async (departmentId) => {
     if (token) {
       dispatch(deleteDepartment(departmentId, token));
-      await fetchDepartments(token);
     }
   };
 
   const handleCreate = async (name) => {
     dispatch(createDepartment(name, token));
-    await fetchDepartments(token);
   };
 
   return (
